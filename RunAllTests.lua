@@ -1,6 +1,8 @@
 package.path = package.path..";.\\tests\\?.lua"
 require"RG_Emulate"
 
+HIDE_PASS = false
+
 tests = {
   "RasterizerTest"
 }
@@ -14,17 +16,17 @@ for i, testName in ipairs( tests ) do
   print(("="):rep(60))
   print("Test suite: "..testName)
   print(("  %d of %d passed"):format(results.passed, results.total))
-  if results.failed > 0 then
+  if not HIDE_PASS or results.failed > 0 then
     print((" -"):rep(30))
     local wid = 1
     for test in pairs(results.tests) do 
-      if not test.passed then
+      if not HIDE_PASS or not test.passed then
         wid = math.max(wid, #test.name)
       end
     end
     for test in pairs(results.tests) do
-      if not test.passed then
-        print(("  %-"..wid.."s | %s | %s"):format(test.name, test.passed and "PASS" or "FAIL", test.reason))
+      if not HIDE_PSSS or not test.passed then
+        print(("  %-"..wid.."s | %s | %s"):format(test.name, test.passed and "PASS" or "FAIL", test.reason or ""))
       end
     end
   end
