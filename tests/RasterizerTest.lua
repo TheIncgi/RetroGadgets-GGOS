@@ -12,42 +12,42 @@ tester = Tester:new()
 local points_uneven = {
   {
     _DEBUG="p1",
-    pos = linalg.vec(  0.0,  0.5, 0 ), --highest
+    pos = linalg.vec(  55,  118, 0 ), --highest
   }, {
     _DEBUG="p2",
-    pos = linalg.vec( -0.5, -0.5, 0 ),
+    pos = linalg.vec(   5,  19, 0 ),
   },{
     _DEBUG="p3",
-    pos = linalg.vec(  0.5, -0.6, 0 ), --lowest
+    pos = linalg.vec(  105,  9, 0 ), --lowest
   },{
     _DEBUG="p4",
-    pos = linalg.vec( 0.452, -0.5, 0 ) --right side point with p2's height
+    pos = linalg.vec( 100, 19, 0 ) --right side point with p2's height
   }
 }
 -- up only, counter clockwise
 local points_up = {
   {
     _DEBUG="p1",
-    pos = linalg.vec(  0.0,  0.5, 0 ), --highest
+    pos = linalg.vec(  10,  15, 0 ), --highest
   },{
     _DEBUG="p2",
-    pos = linalg.vec( -0.5, -0.5, 0 ), --lowest
+    pos = linalg.vec( 5, 5, 0 ), --lowest
   },{
     _DEBUG="p3",
-    pos = linalg.vec(  0.5, -0.5, 0 ), --lowest
+    pos = linalg.vec(  15, 5, 0 ), --lowest
   }
 }
 -- down only, counter clockwise
 local points_down = {
   {
     _DEBUG="p1",
-    pos = linalg.vec( -0.5,  0.5, 0 ), --highest
+    pos = linalg.vec( 5,  15, 0 ), --highest
   },{
     _DEBUG="p2",
-    pos = linalg.vec(  0.5,  0.5, 0 ), --highest
+    pos = linalg.vec(  15,  15, 0 ), --highest
   },{
     _DEBUG="p3",
-    pos = linalg.vec(  0.0, -0.5, 0 ), --lowest
+    pos = linalg.vec(  10, 5, 0 ), --lowest
   }
 }
 
@@ -105,7 +105,7 @@ do
   rast.doBottomTriangle = bottom.proxy
   rast.doTopTriangle    = top.proxy
   local p1, p2, p3 = table.unpack( points_down )
-  bottom( rast, p1, p2, p3, pixel ).exact()
+  bottom{ rast, p1, p2, p3, pixel }.exact()
   
   -- test code
   local test = tester:add("shouldOnlyCall_doBottomTriangle", Env:new(), function()
@@ -134,7 +134,7 @@ do
   rast.doBottomTriangle = bottom.proxy
   rast.doTopTriangle    = top.proxy
   local p1, p2, p3 = table.unpack( points_up )
-  top( rast, p1, p2, p3, pixel ).exact()
+  top{ rast, p1, p2, p3, pixel }.exact()
   
   -- test code
   local test = tester:add("shouldOnlyCall_doTopTriangle", Env:new(), function()
@@ -165,10 +165,10 @@ do
   local p1, p2, p3, p4 = table.unpack( points_uneven )
   local eq = Proxy.static.eq
   local p4Match = function( value )
-    return linalg.isVec(value) and linalg.magnitude( linalg.subVec(p4, value) ) < .01 --fix p4
+    return type(value)=="table" and linalg.isVec(value.pos) and linalg.magnitude( linalg.subVec(p4.pos, value.pos) ) < .01 --fix p4
   end
-  top( eq(rast), eq(p1), eq(p2), p4Match, eq(pixel) ).matched()
-  bottom( eq(rast), eq(p2), p4Match, eq(p3), eq(pixel) ).matched()
+  top{    eq(rast), eq(p1),  eq(p2), p4Match, eq(pixel) }.matched()
+  bottom{ eq(rast), eq(p2), p4Match,  eq(p3), eq(pixel) }.matched()
   
   -- test code
   local test = tester:add("shouldCallTopAndBottomTriangle", Env:new(), function()
@@ -178,10 +178,46 @@ do
   -- expects 
   test:var_eq(function()
     return bottom.records.totalCalls
-  end, 0, "Expected exactly one call to `doBottomTriangle`, called $1 times")
+  end, 1, "Expected exactly one call to `doBottomTriangle`, called $1 times")
   test:var_eq(function()
     return top.records.totalCalls
   end, 1, "Expected exactly zero calls to `doBottomTriangle`, called $1 times")
+end
+
+----------------------------------------------
+-- Hits correct pixels for top triangle     --
+----------------------------------------------
+do
+  -- given
+  local rast = Rasterizer:new()
+  local onPixel  = Proxy:new("onPixel", function() end)
+
+  local p1, p2, p3 = table.unpack( points_uneven )
+  local eq = Proxy.static.eq
+  local pixelMatch = function( x, y, z )
+    return function( ibundle )
+      return x == ibundle.pos.val[1]
+         and y == ibundle.pos.val[2]
+         and z == ibundle.pos.val[3]
+    end
+  end
+  --used blender to help with point selection
+  --expected pixels
+  onPixel{ 20,  31, 0 }.exact()
+  onPixel{ 55, 111, 0 }.exact()
+  onPixel{ 95,  21, 0 }.exact()
+  --unexpected pixels
+  onPixel{  7,  30, 0 }.exactNever()
+  onPixel{ 48, 110, 0 }.exactNever()
+  onPixel{ 60, 112, 0 }.exactNever()
+  onPixel{ 97,  31, 0 }.exactNever()
+  onPixel{ 73,  17, 0 }.exactNever()
+  
+  -- test code
+  local test = tester:add("shouldDrawCorrectPixels", Env:new(), function()
+    rast:doTopTriangle( p1, p2, p3, onPixel )
+  end)
+  
 end
 
 return tester
