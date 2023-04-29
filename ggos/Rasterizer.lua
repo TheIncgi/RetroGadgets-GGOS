@@ -52,13 +52,13 @@ function Rast:doTriangle( p1, p2, p3, onPixel )
 	  --similar triangles, solves for x offset from point 1 (top)
 		local p4 = {
       pos = linalg.vec(
-        math.floor(
-   			 p1.pos.val[1] + (	(p2.pos.val[2] - p1.pos.val[2])/(p3.pos.val[2] - p1.pos.val[2])) * (p3.pos.val[1] - p1.pos.val[1])
-        ), 
-        p2.pos.val[2],
-        math.floor(
-   	 		p1.pos.val[3] + (	(p2.pos.val[2] - p1.pos.val[2])/(p3.pos.val[2] - p1.pos.val[2])) * (p3.pos.val[3] - p1.pos.val[3])
-    	  )
+					math.floor(
+						p1.pos.val[1] + (	(p2.pos.val[2] - p1.pos.val[2])/(p3.pos.val[2] - p1.pos.val[2])) * (p3.pos.val[1] - p1.pos.val[1]) + .5
+					), 
+					p2.pos.val[2],
+					math.floor(
+						p1.pos.val[3] + (	(p2.pos.val[2] - p1.pos.val[2])/(p3.pos.val[2] - p1.pos.val[2])) * (p3.pos.val[3] - p1.pos.val[3]) +.5
+					)
     		)
   	} --end p4	
 		
