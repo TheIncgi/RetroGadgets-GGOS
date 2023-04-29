@@ -30,24 +30,24 @@ function Rast:new( ... )
 end
 
 function Rast:_sortPoints( p1, p2, p3 )
-	if p1.pos.val[2] > p2.pos.val[2] then
+	if p1.pos.val[2] < p2.pos.val[2] then
     p1, p2 = p2, p1
   end
-  if p2.pos.val[2] > p3.pos.val[2] then
+  if p2.pos.val[2] < p3.pos.val[2] then
     p2, p3 = p3, p2
   end
-  if p1.pos.val[2] > p2.pos.val[2] then
+  if p1.pos.val[2] < p2.pos.val[2] then
     p1, p2 = p2, p1
   end
-  return p3, p2, p1 --descending order
+  return p1, p2, p3 --descending order
 end
 
 function Rast:doTriangle( p1, p2, p3, onPixel )
 	p1, p2, p3 = self:_sortPoints( p1, p2, p3 )
 	if p2.pos.val[2] == p3.pos.val[2] then
-	  self:doBottomTriangle( p1, p2, p3 )
+	  self:doTopTriangle( p1, p2, p3, onPixel )
 	elseif p1.pos.val[2] == p2.pos.val[2] then
-	  self:doTopTriangle( p1, p2, p3 )
+	  self:doBottomTriangle( p1, p2, p3, onPixel )
 	else
 	  --similar triangles, solves for x offset from point 1 (top)
 		local p4 = {
@@ -65,11 +65,13 @@ function Rast:doTriangle( p1, p2, p3, onPixel )
   	local f = mathUtils.map( p4.pos.val[2], p1.pos.val[2], p3.pos.val[2], 0, 1 )
   	for k,vals in pairs( p1 ) do
    	 if k ~= "pos" then --uv, norm, color, ...
-    	  p4[k] = linalg.interpolate( f, p1[k], p3[k] )
+				if linalg.isVec(p4[k]) or type(p4[k]) == "number" then
+    	  	p4[k] = linalg.interpolate( f, p1[k], p3[k] )
+				end
     	end
   	end
-		self:doBottomTriangle( p1, p2, p4, onPixel )
-		self:doTopTriangle( p2, p4, p3, onPixel )
+		self:doTopTriangle( p1, p2, p4, onPixel )
+		self:doBottomTriangle( p2, p4, p3, onPixel )
 	end
 end
 
