@@ -325,7 +325,7 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
       function(point)
         local env = {
           screenSpaceVert = point.pos,
-          localSpaceVert  = self:_unproject( point.pos ),
+          localSpaceVert  = self:_unproject( env, point.pos ),
           --globalSpaceVert,
           normal  = point.norm,
           uv = point.uv,
