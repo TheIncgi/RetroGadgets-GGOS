@@ -106,7 +106,7 @@ end
 
 --screen to local
 function Object:_unproject( env, vec )
-  return linalg.matrixMult( env.invProjection, vec )
+  return linalg.vecSwizzle(linalg.matrixMult( env.invProjection, linalg.vec(vec,1) ),"xyz")
 end
 
 --local to world
