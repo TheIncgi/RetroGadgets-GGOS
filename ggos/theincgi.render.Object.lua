@@ -4,6 +4,7 @@ local cls = require"class.lua"
 local class = cls.class
 
 local utils = require"utils.lua"
+local mathUtils = require"mathUtils.lua"
 local Object = class"theincgi.render.Object"
 
 local Material = require"theincgi.render.Material.lua"
@@ -295,6 +296,9 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
           pointIn = true
 		  end
       tf[i] = sw( sc(tf[i],w),"xyz" )
+      -- -1 <-> 1 to 0 <-> wid/hei
+      tf[i].val[1] = mathUtils.map(tf[i].val[1], -1,1, 0, screen:getWidth())
+      tf[i].val[2] = mathUtils.map(tf[i].val[2], -1,1, 0, screen:getHeight())
     end
     if not pointIn then return false end
 
@@ -323,23 +327,35 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         clip   = clip[3]
       },
       function(point)
-        local env = {
-          screenSpaceVert = point.pos,
-          localSpaceVert  = self:_unproject( env, point.pos ),
-          --globalSpaceVert,
-          normal  = point.norm,
-          uv = point.uv,
-          bar = point.bar
+        local px, py
+        env.screenSpaceVert = point.pos
+        -- print("PX: "..point.pos.val[1]..", PY: "..point.pos.val[2])
+        env.localSpaceVert  = self:_unproject( env, point.pos )
+        env.vertPos = point.vertex
+        env.uvPos   = point.uv
+        env.normal  = point.norm
+        env.clipPos = point.clip
+        env.barPos  = point.bar
 
-        }
-        -- local xyzs = args.v
-        -- local norms = args.n
-        -- local clips = args.clip
-        -- local uvs = args.t
-        -- local bar = args.bar
-        -- local env = args.env
-        -- local px,py = args.px, args.py
-        -- local screen = args.screen
+        local c = self:fragShader( env )
+        --c = linalg.vec( c, 1 )
+        for i=1,#c.val do
+          c.val[i] = math.max(0,math.min(255,math.floor(c.val[i]*255)))
+        end
+        
+        --print( "OBJ",px,py,c.val[1],c.val[2],c.val[3] )
+        c.val[4] = 255  --TRANSPARENCY DISABLED
+        --c.val[4] = c.val[4] or 255
+        --print(c.val[4])
+        local px, py, pd = point.pos.val[1], point.pos.val[2], point.pos.val[3]
+        local currentDepth = screen:getExtra(px, py, "depth")
+        if currentDepth==nil or pd > currentDepth then
+          screen:setPixel(
+            px, py,
+            ColorRGBA( table.unpack(c.val) )
+          )
+          screen:setExtra(px, py, "depth", pd)
+        end
       end
     )
     -- raster:setVecs{ tf[1].val, tf[2].val, tf[3].val }

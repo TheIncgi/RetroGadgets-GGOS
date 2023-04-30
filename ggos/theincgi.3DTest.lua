@@ -39,7 +39,7 @@ end
 local function setupEnv( view )
   cprint(ansiColor.yellow,"Env Setup")
   buffer = RBuff:new{ parent=view, lbl="3D-Test-Buffer" }
-  rast = Rast:new{ buffer=buffer }
+  rast = Rast:new()
 	
 	cam = Cam:new(.2,0,4.3)
 	local w,h = retroUtils.screenSize()

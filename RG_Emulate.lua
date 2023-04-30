@@ -38,7 +38,7 @@ local function findEndOfString(str, start)
 end
 
 local function isFunctionCall(src, start)
-  return src:sub(start):match"^:[%w_]+%("
+  return src:sub(start):match"^:[%w_]+[%(%{]"
 end
 
 
@@ -49,18 +49,30 @@ local function luauToLua(src)
   while i <= #src do
     local char = src:sub(i, i)
 
-    if char == "\"" or char == "'" or char == "[" then
+    if char == "\"" or char == "'" or src:sub(i):match"%[=*%[" then
       -- String literal, find end and append
       local stringEnd = findEndOfString(src, i)
       local str = src:sub(i, stringEnd - 1)
       i = stringEnd
     elseif char == ":" and not isFunctionCall(src, i) then
-      local typeMatch = src:sub(i):match("^:[%w_]+")
+      local typeMatch = src:sub(i):match("^: *[%w_%|]+") or src:sub(i):match("^:{}")
       if typeMatch then
         src = src:sub(1, i - 1) .. src:sub(i + #typeMatch)
         i = i - 1
       else
         i = i + 1
+      end
+    elseif ("+-/*"):find(char,1,true) and src:sub(i+1,i+1) == "=" then
+      local before = src:sub(1,i-1):match"[%w_%.%[%]\"']+$"
+      local expanded = ("= %s %s "):format(before, char)
+      src = src:sub(1,i-1)..expanded..src:sub(i+2)
+      i = i + #expanded
+    elseif src:sub(i,i+1)=="--" then
+      i = i+2
+      if src:sub(i):match"%[=*%[" then
+        i = findEndOfString(src, i)
+      else
+        i = i + #src:sub(i):match"[^\n]+"
       end
     else
       i = i + 1
@@ -72,65 +84,82 @@ end
 
 function luauLoader( src, chunkName )
   local luaSrc = luauToLua( src )
-  return load( luaSrc, chunkName )
+  local loaded, err = load( luaSrc, chunkName )
+  if err then
+    error("Could not load "..chunkName..":\n"..err)
+  end
+  return loaded
 end
 
 
--- local test = [===[
---   local foo:number = 10
---   function blarg:blorb(x:number, y:string)
---   end
---   blorp:blorb(3,"x:y")
+local test = [===[
+  local foo:number = 10
+  function blarg:blorb(x:number, y:string)
+  end
+  blorp:blorb(3,"x:y")
 
---   local class = {}
---   local classMeta = { 
---     __index = baseClass,
---     __class = className 
---   }
---   setmetatable( class, classMeta )
+  m.view = View:new{
+		x=1, y=1,
+		width = vChip.Width,
+		height = vChip.Height,
+		vChip = vChip,
+		label = "GGOS-full"
+	}
 
---   function class:new( ... )
---     ...
---   end
+function View:inLocalBounds( viewX: number, viewY: number )
+	return
+		utils.inRect( viewX, viewY, 1, 1, self:getWidth(), self:getHeight())
+end
 
---   function class:class()
---     ...
---   end
+  local class = {}
+  local classMeta = { 
+    __index = baseClass,
+    __class = className 
+  }
+  setmetatable( class, classMeta )
+
+  function class:new( ... )
+    ...
+  end
+
+  function class:class()
+    ...
+  end
   
---   function class:__enableMetaEvents()
---     ...
---   end
+  function class:__enableMetaEvents()
+    ...
+  end
 
---   class.className = function() return classMeta.__class end
+  class.className = function() return classMeta.__class end
   
---   function class:super()
---     return baseClass
---   end
+  function class:super()
+    return baseClass
+  end
 
---   function class:isA( someClass )
---     if not self then error("Self can not be nil", 2) end
---     if not cls.isClass(someClass) then error("Argument provided is not a class",2) end
---     local current = class
---     while current do
---       if current == someClass then
---         return true
---       end
---       current = current:super()
---     end
---     return false
---   end
+  function class:isA( someClass )
+    if not self then error("Self can not be nil", 2) end
+    if not cls.isClass(someClass) then error("Argument provided is not a class",2) end
+    local current = class
+    while current do
+      if current == someClass then
+        return true
+      end
+      current = current:super()
+    end
+    return false
+  end
 
---   function class:isInstance()
---     return getmetatable( self ).__instance or false
---   end
+  function class:isInstance()
+    return getmetatable( self ).__instance or false
+  end
 
---   return class
--- end
--- ]===]
--- local r = luauToLua( test )
+  return class
+end
+]===]
+local r = luauToLua( test )
 
 table.insert(package.loaders, function(moduleName)
-  if moduleName:sub(-4) == ".lua" then
+  if moduleName:sub(-4) == ".lua" or moduleName:match".luafont$" then
     for i, loader in ipairs(package.loaders) do
       
       local path = "./ggos/"..moduleName
@@ -149,6 +178,17 @@ end)
 ----------------------------------------------------
 -- global proxies                                 --
 ----------------------------------------------------
+function asUserdata(mock)
+  getmetatable(mock.proxy).__type = "userdata"
+end
+local nativeType = type
+type = function(x)
+  if nativeType(x)=="table" and getmetatable(x) and getmetatable(x).__type then
+      return getmetatable(x).__type
+  end
+  return nativeType(x)
+end
+
 local MockProxy = require"MockProxy"
 
 __RG_MOCK__ = {}
@@ -161,4 +201,16 @@ rgProxy.gdt = MockProxy:new("gdt",{
     CPU0 = rgProxy.CPU0
 })
 
+rgProxy.VideoChip0_setPixel = MockProxy:new("VideoChip0.SetPixel",function() end)
+rgProxy.VideoChip0 = MockProxy:new("VideoChip0",{
+  Width = 800,
+  Height = 500,
+  SetPixel = rgProxy.VideoChip0_setPixel.proxy
+})
+asUserdata( rgProxy.VideoChip0 )
+rgProxy.gdt.VideoChip0 = rgProxy.VideoChip0.proxy
+
 gdt = rgProxy.gdt.proxy
+setFgColor = function() end
+setBgColor = function() end
+debug.info = debug.getinfo

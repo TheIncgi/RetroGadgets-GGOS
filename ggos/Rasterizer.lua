@@ -42,6 +42,12 @@ function Rast:_sortPoints( p1, p2, p3 )
   return p1, p2, p3 --descending order
 end
 
+function Rast:roundPoint( p )
+	p.pos.val[1] = math.floor( 0.5 + p.pos.val[1] )
+	p.pos.val[2] = math.floor( 0.5 + p.pos.val[2] )
+	return p
+end
+
 function Rast:doTriangle( p1, p2, p3, onPixel )
 	p1, p2, p3 = self:_sortPoints( p1, p2, p3 )
 	if p2.pos.val[2] == p3.pos.val[2] then
@@ -65,7 +71,7 @@ function Rast:doTriangle( p1, p2, p3, onPixel )
   	local f = mathUtils.map( p4.pos.val[2], p1.pos.val[2], p3.pos.val[2], 0, 1 )
   	for k,vals in pairs( p1 ) do
    	 if k ~= "pos" then --uv, norm, color, ...
-				if linalg.isVec(p4[k]) or type(p4[k]) == "number" then
+				if linalg.isVec(vals) or type(vals) == "number" then
     	  	p4[k] = linalg.interpolate( f, p1[k], p3[k] )
 				end
     	end
@@ -79,7 +85,7 @@ function Rast:_interpolateBundle( f, a, b, x, y, z )
   local q = {}
   for k,vals in pairs( a ) do
     if k ~= "pos" 
-		 and type(q[k]) =="number" or linalg.isVec(q[k]) then --uv, norm, color, ...
+		  and (type(a[k]) =="number" or linalg.isVec(a[k]) ) then --uv, norm, color, ...
       q[k] = linalg.interpolate( f, a[k], b[k] )
     end
   end
@@ -102,12 +108,12 @@ function Rast:_scanLine( y, pLeft, pRight, onPixel )
     onPixel( 
 			-- x, y, --screen space
 			-- mathUtils.map( x, x1, x2, z1, z2 ), --screen space depth
-      self:_interpolateBundle( 
-        (x-pLeft.pos.val[1]) / (pRight.pos.val[1]-pLeft.pos.val[1]),
+      self:roundPoint( self:_interpolateBundle( 
+        rightX==leftX and 0 or (x-pLeft.pos.val[1]) / (rightX-leftX),
         pLeft,
         pRight,
         x, y, mathUtils.map( x, pLeft.pos.val[1], pRight.pos.val[1], pLeft.pos.val[3], pRight.pos.val[3] )
-      ) --interpolated vertex info, pos is still in screen space!
+      ) )--interpolated vertex info, pos is still in screen space!
 		)
   end
 end
@@ -127,7 +133,7 @@ function Rast:doTopTriangle( p1, p2, p3, onPixel )
 			y,
       --pLeft ( y-start ) / (end - start)
       self:_interpolateBundle( 
-				(y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] ), 
+				(p2.pos.val[2] == p1.pos.val[2]) and 0 or ((y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] )), 
 				p1, 
 				p2, 
 				math.floor(x1 + 0.5), 
@@ -142,7 +148,7 @@ function Rast:doTopTriangle( p1, p2, p3, onPixel )
 			),
       --pRight
       self:_interpolateBundle( 
-				(y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] ), 
+				(p2.pos.val[2] == p1.pos.val[2] ) and 0 or ((y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] )), 
 				p1, 
 				p3, 
 				math.floor(x2 + 0.5), 
@@ -183,7 +189,7 @@ function Rast:doBottomTriangle( p1, p2, p3, onPixel )
 			y,
       --pLeft ( y-start ) / (end - start)
 			self:_interpolateBundle(
-				(y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]),
+				(p1.pos.val[2] == p3.pos.val[2]) and 0 or ((y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2])),
 				p3,
 				p1,
 				math.floor( x1 + 0.5 ),
@@ -193,7 +199,7 @@ function Rast:doBottomTriangle( p1, p2, p3, onPixel )
 			),
       --pRight
       self:_interpolateBundle( 
-				(y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]), 
+				(p1.pos.val[2] == p3.pos.val[2]) and 0 or ((y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2])), 
 				p3, 
 				p2,
 				math.floor( x2 + 0.5 ),

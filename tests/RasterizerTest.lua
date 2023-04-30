@@ -67,6 +67,22 @@ local points_left = {
   }
 }
 
+-- multipart, left pointing, with extra
+local points_left_extra = {
+  {
+    _DEBUG="p1",
+    pos = linalg.vec( 130, 167, 0 ), --highest
+    vertex = linalg.vec( 1, 0, 0)
+  },{
+    _DEBUG="p2",
+    pos = linalg.vec(   8,  85, 0 ), --mid
+    vertex = linalg.vec( 0, 1, 0)
+  },{
+    _DEBUG="p3",
+    pos = linalg.vec(  129, 11, 0 ), --lowest
+    vertex = linalg.vec( 0, 0, 1)
+  }
+}
 
 ----------------------------------------------
 -- Test utils                               --
@@ -329,7 +345,36 @@ do
   test:var_eq(function()
     return bottomPoint.hits
   end, 1, "bottom test pixel called $1 times instead of once")
-  
 end
 
+----------------------------------------------
+-- Interpolates extras                      --
+----------------------------------------------
+do
+  --given
+  local rast = Rasterizer:new()
+  local env = Env:new()
+  local onPixel = env:proxy("onPixel", function() end)
+
+  local p1, p2, p3 = table.unpack( points_left_extra )
+  onPixel(any()):always() --don't care about details
+
+  --test code
+  local test = tester:add("Interpolates extras", env, function()
+    rast:doTriangle(p1, p2, p3, onPixel.proxy)
+  end)
+
+  test:var_isTrue(function()
+    for i, callArgs in ipairs(onPixel.records.call) do
+      if not callArgs[1].vertex then
+        --string is not true, counts as failure
+        return "onPixel call #"..i.." of "..#onPixel.records.call.." "..utils.serializeOrdered(callArgs[1]).." does not contain the vertex attribute"
+      end
+      if callArgs[1].vertex.val[1] ~= callArgs[1].vertex.val[1] then
+        return "onPixel call #"..i.." of "..#onPixel.records.call.." "..utils.serializeOrdered(callArgs[1]).." contains a vertex with NaN"
+      end
+    end
+    return true
+  end, "$1" )
+end
 return tester
