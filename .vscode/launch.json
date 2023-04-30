@@ -10,7 +10,8 @@
             "request": "launch",
             "program": {
                 "lua": "lua52",
-                "file": "./RunAllTests.lua"
+                // "file": "./RunAllTests.lua"
+                "file": "./Run3DTest.lua"
             }
         },
         {

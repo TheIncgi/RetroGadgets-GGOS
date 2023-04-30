@@ -366,7 +366,7 @@ end
 
 --TODO toggle bg fill
 function View:clear()
-	local clr = color.black
+	--local clr = color.black
 	self.private.buffer = {}
 	
 	--gdt.VideoChip0:FillRect(

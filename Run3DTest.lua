@@ -1,6 +1,6 @@
 require"RG_Emulate"
 require"ggos.CPU0"
 
-while true do
+-- while true do
   update()
-end
+-- end

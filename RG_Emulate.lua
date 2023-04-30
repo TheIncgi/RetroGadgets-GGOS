@@ -38,7 +38,7 @@ local function findEndOfString(str, start)
 end
 
 local function isFunctionCall(src, start)
-  return src:sub(start):match"^:[%w_]+[%(%{]"
+  return src:sub(start):match"^:[%w_]+[%(%{%\"%\']"
 end
 
 
@@ -159,7 +159,10 @@ end
 local r = luauToLua( test )
 
 table.insert(package.loaders, function(moduleName)
-  if moduleName:sub(-4) == ".lua" or moduleName:match".luafont$" then
+  if moduleName:sub(-4) == ".lua" or moduleName:match".luafont$"
+  or moduleName:match".obj$"
+  or moduleName:match".mtl$"
+  or moduleName:match".tex$" then
     for i, loader in ipairs(package.loaders) do
       
       local path = "./ggos/"..moduleName
@@ -178,8 +181,15 @@ end)
 ----------------------------------------------------
 -- global proxies                                 --
 ----------------------------------------------------
-function asUserdata(mock)
-  getmetatable(mock.proxy).__type = "userdata"
+function asType(mock, typeName)
+  if mock.proxy then
+    getmetatable(mock.proxy).__type = typeName
+  elseif getmetatable(mock) then
+    getmetatable(mock).__type = typeName
+  else
+    setmetatable(mock, {__type=typeName})
+  end
+  return mock
 end
 local nativeType = type
 type = function(x)
@@ -198,7 +208,7 @@ rgProxy.CPU0 = MockProxy:new("CPU0",{
 })
 
 rgProxy.gdt = MockProxy:new("gdt",{
-    CPU0 = rgProxy.CPU0
+    CPU0 = rgProxy.CPU0.proxy
 })
 
 rgProxy.VideoChip0_setPixel = MockProxy:new("VideoChip0.SetPixel",function() end)
@@ -207,10 +217,59 @@ rgProxy.VideoChip0 = MockProxy:new("VideoChip0",{
   Height = 500,
   SetPixel = rgProxy.VideoChip0_setPixel.proxy
 })
-asUserdata( rgProxy.VideoChip0 )
+asType( rgProxy.VideoChip0, "userdata")
 rgProxy.gdt.VideoChip0 = rgProxy.VideoChip0.proxy
 
 gdt = rgProxy.gdt.proxy
 setFgColor = function() end
 setBgColor = function() end
 debug.info = debug.getinfo
+
+rgProxy.color = MockProxy:new("color",{
+  black = asType({R=0,G=0,B=0,A=255},"vector")
+})
+color = rgProxy.color.proxy
+
+rgProxy.ColorRGBA = MockProxy:new("ColorRGBA",function(r,g,b,a)
+  return asType({R=r,G=g,B=b,A=a},"vector")
+end)
+rgProxy.ColorRGBA.realDefault = true
+ColorRGBA = rgProxy.ColorRGBA.proxy
+
+local function mockTbl(name, tbl)
+  rgProxy[name] = MockProxy:new(name, tbl)
+  rgProxy.gdt.target[name] = rgProxy[name].proxy
+end
+local function mockButton( name )
+  mockTbl(name, {
+    ButtonDown = false
+  })
+end
+
+for _,button in ipairs{
+  "LedButton0",
+  "LedButton1",
+  "LedButton2",
+  "LedButton3",
+  "LedButton4",
+  "LedButton5",
+  "LedButton6",
+  "LedButton7",
+  "LedButton8",
+  "LedButton9",
+  "LedButton10"
+} do mockButton(button) end
+
+mockTbl("DPad1",{
+  X = 0,
+  Y = 0
+})
+
+mockTbl("Stick0", {
+  X = 0,
+  Y = 0
+})
+mockTbl("Stick1", {
+  X = 0,
+  Y = 0
+})

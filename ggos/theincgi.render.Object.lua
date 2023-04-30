@@ -203,52 +203,6 @@ function Object:fragShader( env )
   return scale(clr, factor)
 end
 
--- local function applyBar( bar, a,b,c )
---   local out = linalg.newVector(a.size)
---   for i=1,out.size do
---     out.val[i] = a.val[i] * bar[1]
---                + b.val[i] * bar[2]
---                + c.val[i] * bar[3]
---   end
---   return out
--- end
-
-function Object:_onPixel(args)
-  local xyzs = args.v
-  local norms = args.n
-  local clips = args.clip
-  local uvs = args.t
-  local bar = args.bar
-  local env = args.env
-  local px,py = args.px, args.py
-  local screen = args.screen
-  local unpack = table.unpack
-
---   local xyz = applyBar(bar,unpack(xyzs))
---   local norm = applyBar(bar,unpack(norms))
---   local clip = applyBar(bar,unpack(clips))
---   local uv = applyBar(bar,unpack(uvs))
-  
-  env.vertPos = args.vertex
-  env.uvPos   = args.uv
-  env.normal  = args.norm
-  env.clipPos = args.clip
-  env.barPos  = args.bar
-
-  local c = self:fragShader( env )
-  --c = linalg.vec( c, 1 )
-  for i=1,#c.val do
-    c.val[i] = math.max(0,math.min(255,math.floor(c.val[i]*255)))
-  end
-  
-  --print( "OBJ",px,py,c.val[1],c.val[2],c.val[3] )
-  c.val[4] = 255  --TRANSPARENCY DISABLED
-  --c.val[4] = c.val[4] or 255
-  --print(c.val[4])
-  screen:setPixel(px,py, 
-   ColorRGBA( unpack(c.val) ) )
-end
-
 --face group
 function Object:_renderGroup( env, raster, screen, faceGroup, part )
 	if not env then error("env [arg 1]",2) end
@@ -297,8 +251,8 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
 		  end
       tf[i] = sw( sc(tf[i],w),"xyz" )
       -- -1 <-> 1 to 0 <-> wid/hei
-      tf[i].val[1] = mathUtils.map(tf[i].val[1], -1,1, 0, screen:getWidth())
-      tf[i].val[2] = mathUtils.map(tf[i].val[2], -1,1, 0, screen:getHeight())
+      tf[i].val[1] = math.floor( 0.5 + mathUtils.map(tf[i].val[1], -1,1, 0, screen:getWidth()))
+      tf[i].val[2] = math.floor( 0.5 + mathUtils.map(tf[i].val[2], -1,1, 0, screen:getHeight()))
     end
     if not pointIn then return false end
 
@@ -347,9 +301,9 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         c.val[4] = 255  --TRANSPARENCY DISABLED
         --c.val[4] = c.val[4] or 255
         --print(c.val[4])
-        local px, py, pd = point.pos.val[1], point.pos.val[2], point.pos.val[3]
+        local px, py, pd = point.pos.val[1], point.pos.val[2], point.clip[3]
         local currentDepth = screen:getExtra(px, py, "depth")
-        if currentDepth==nil or pd > currentDepth then
+        if currentDepth==nil or pd < currentDepth then
           screen:setPixel(
             px, py,
             ColorRGBA( table.unpack(c.val) )
@@ -358,24 +312,6 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         end
       end
     )
-    -- raster:setVecs{ tf[1].val, tf[2].val, tf[3].val }
-    -- local function onPixel(bar,x,y) 
-    --   self:_onPixel{
-    --     bar=bar,
-    --     px=x,
-    --     py=y,
-    --     v={v1,v2,v3},
-    --     n={n1,n2,n3},
-    --     t={t1,t2,t3},
-    --     tf=tf,
-    --     clip=clip,
-    --     env=env,
-    --     screen=screen
-    --   }
-    -- end
-    -- while raster:itterate( onPixel ) do
-    --   --yield
-    -- end
   end
 end
 

@@ -89,7 +89,7 @@ end
 
 function GTest:onFocus()
   local w,h = self.view:getSize()
-  buffer:drawLine(1,1,w,h,color.red)
+  --buffer:drawLine(1,1,w,h,color.red)
 	renderObjects( self.view )
 	self:super().onFocus( self )
 end
