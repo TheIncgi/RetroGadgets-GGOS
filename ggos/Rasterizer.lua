@@ -78,13 +78,15 @@ end
 function Rast:_interpolateBundle( f, a, b, x, y, z )
   local q = {}
   for k,vals in pairs( a ) do
-    if k ~= "pos" then --uv, norm, color, ...
+    if k ~= "pos" 
+		 and type(q[k]) =="number" or linalg.isVec(q[k]) then --uv, norm, color, ...
       q[k] = linalg.interpolate( f, a[k], b[k] )
     end
   end
   if x then
     q.pos = linalg.vec(x,y,z)
   end
+	return q
 end
 
 function Rast:_scanLine( y, pLeft, pRight, onPixel )
@@ -92,12 +94,15 @@ function Rast:_scanLine( y, pLeft, pRight, onPixel )
 	utils.assertType("table", pLeft, ":_scanLine", "pLeft [arg 2]", 2)
 	utils.assertType("table", pRight, ":_scanLine", "pRight [arg 3]", 3)
 	utils.assertType("function", onPixel, ":_scanLine", "onPixel [arg 4]", 4)
+	
+	local leftX = math.min( pLeft.pos.val[1], pRight.pos.val[1] )
+	local rightX = math.max( pLeft.pos.val[1], pRight.pos.val[1] )
 
-	  for x=pLeft.pos.val[1], pRight.pos.val[1] do
+	for x = leftX, rightX do
     onPixel( 
 			-- x, y, --screen space
 			-- mathUtils.map( x, x1, x2, z1, z2 ), --screen space depth
-      self:_interpolatedBundle( 
+      self:_interpolateBundle( 
         (x-pLeft.pos.val[1]) / (pRight.pos.val[1]-pLeft.pos.val[1]),
         pLeft,
         pRight,
@@ -107,23 +112,25 @@ function Rast:_scanLine( y, pLeft, pRight, onPixel )
   end
 end
 function Rast:doTopTriangle( p1, p2, p3, onPixel )
-	--dx/dy pt 1 & 2
-	local is1 = (p2.pos.val[1]-p1.pos.val[1])/(p2.pos.val[2]-p1.pos.val[2])
-	--dx/dy pt 1 & 3
-	local is2 = (p3.pos.val[1]-p1.pos.val[1])/(p3.pos.val[2]-p1.pos.val[2])
+	-- --dx/dy pt 1 & 2
+	-- local is1 = (p2.pos.val[1]-p1.pos.val[1])/(p2.pos.val[2]-p1.pos.val[2])
+	-- --dx/dy pt 1 & 3
+	-- local is2 = (p3.pos.val[1]-p1.pos.val[1])/(p3.pos.val[2]-p1.pos.val[2])
 	
-	local x1 = p1.pos.val[1]
-	local x2 = x1
+	-- local x1 = p1.pos.val[1]
+	-- local x2 = x1
 	
-	for y = p1.pos.val[2], p2.pos.val[2] do
+	for y = p1.pos.val[2], p2.pos.val[2], -1 do
+		local x1 = math.floor( .5 + mathUtils.map( y, p1.pos.val[2], p2.pos.val[2], p1.pos.val[1], p2.pos.val[1]) )
+		local x2 = math.floor( .5 + mathUtils.map( y, p1.pos.val[2], p3.pos.val[2], p1.pos.val[1], p3.pos.val[1]) )
 	  self:_scanLine(
 			y,
       --pLeft ( y-start ) / (end - start)
-      Rast:_interpolateBundle( 
+      self:_interpolateBundle( 
 				(y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] ), 
 				p1, 
 				p2, 
-				math.floor(x1), 
+				math.floor(x1 + 0.5), 
 				y, 
 				mathUtils.map( --z1
         	y,
@@ -134,11 +141,11 @@ function Rast:doTopTriangle( p1, p2, p3, onPixel )
       	) 
 			),
       --pRight
-      Rast:_interpolateBundle( 
+      self:_interpolateBundle( 
 				(y-p1.pos.val[2]) / (p2.pos.val[2] - p1.pos.val[2] ), 
 				p1, 
 				p3, 
-				math.floor(x2), 
+				math.floor(x2 + 0.5), 
 				y, 
 				mathUtils.map( --z2
     	    y,
@@ -151,33 +158,52 @@ function Rast:doTopTriangle( p1, p2, p3, onPixel )
 			onPixel
 	  )
 	  --step x1 and x2
-	  x1,x2 = x1+is1, x2+is2
+		--has drifting... :(
+	  -- x1,x2 = x1+is1, x2+is2
 	end
 end
 
 
 function Rast:doBottomTriangle( p1, p2, p3, onPixel )
-  --inverted slope points 3 and 1
-	local is1 =
-	  (p3.pos.val[1]-p1.pos.val[1])/(p3.pos.val[2]-p1.pos.val[2])
-	--inverted slope points 3 and 2
-	local is2 = 
-	  (p3.pos.val[1]-p2.pos.val[1])/(p3.pos.val[2]-p2.pos.val[2])
+  -- --inverted slope points 3 and 1
+	-- local is1 =
+	--   (p3.pos.val[1]-p1.pos.val[1])/(p3.pos.val[2]-p1.pos.val[2])
+	-- --inverted slope points 3 and 2
+	-- local is2 = 
+	--   (p3.pos.val[1]-p2.pos.val[1])/(p3.pos.val[2]-p2.pos.val[2])
 	
 	local x1 = p3.pos.val[1]
 	local x2 = x1
 	
-	for y = p3.pos.val[2], p1.pos.val[2]+1, -1 do
+	for y = p3.pos.val[2], p1.pos.val[2] do
+		local x1 = mathUtils.map( y, p3.pos.val[2], p1.pos.val[2], p3.pos.val[1], p1.pos.val[1] )
+		local x2 = mathUtils.map( y, p3.pos.val[2], p2.pos.val[2], p3.pos.val[1], p2.pos.val[1] )
+
 	  self:_scanLine( --x1,x2,y,z1,z1,pixl
 			y,
-      --pLeft
-      linalg.interpolate( (y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]), p3, p1 ),
+      --pLeft ( y-start ) / (end - start)
+			self:_interpolateBundle(
+				(y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]),
+				p3,
+				p1,
+				math.floor( x1 + 0.5 ),
+				y,
+				--z
+				mathUtils.map( y, p3.pos.val[2], p1.pos.val[2], p3.pos.val[3], p1.pos.val[3] )
+			),
       --pRight
-      linalg.interpolate( (y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]), p3, p2 ),
+      self:_interpolateBundle( 
+				(y-p3.pos.val[2]) / (p1.pos.val[2] - p3.pos.val[2]), 
+				p3, 
+				p2,
+				math.floor( x2 + 0.5 ),
+				y,
+				mathUtils.map( y, p3.pos.val[2], p2.pos.val[2], p3.pos.val[3], p2.pos.val[3] )
+			),
 			onPixel
 	  )
-		--step x
-		x1,x2 = x1-is1, x2-is2
+		-- --step x pixel drift :(
+		-- x1,x2 = x1-is1, x2-is2
 	end
 end
 
