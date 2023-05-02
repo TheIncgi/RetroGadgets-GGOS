@@ -63,7 +63,7 @@ local function luauToLua(src)
         i = i + 1
       end
     elseif ("+-/*"):find(char,1,true) and src:sub(i+1,i+1) == "=" then
-      local before = src:sub(1,i-1):match"[%w_%.%[%]\"']+$"
+      local before = src:sub(1,i-1):match"([%w_%.%[%]\"']+) *$"
       local expanded = ("= %s %s "):format(before, char)
       src = src:sub(1,i-1)..expanded..src:sub(i+2)
       i = i + #expanded
@@ -105,6 +105,8 @@ local test = [===[
 		vChip = vChip,
 		label = "GGOS-full"
 	}
+
+  cube.yaw += inputs.axis.leftAnalog.X/50
 
 function View:inLocalBounds( viewX: number, viewY: number )
 	return
@@ -181,6 +183,9 @@ end)
 ----------------------------------------------------
 -- global proxies                                 --
 ----------------------------------------------------
+local Bmp = require"Bitmap"
+bmp = Bmp:new( 800, 500 )
+
 function asType(mock, typeName)
   if mock.proxy then
     getmetatable(mock.proxy).__type = typeName
@@ -211,11 +216,15 @@ rgProxy.gdt = MockProxy:new("gdt",{
     CPU0 = rgProxy.CPU0.proxy
 })
 
-rgProxy.VideoChip0_setPixel = MockProxy:new("VideoChip0.SetPixel",function() end)
+local VideoChip0_setPixel = function(x, y, color)
+  bmp:setPixel( x, y, color )
+end
+-- MockProxy:new("VideoChip0.SetPixel",function() end)
+-- rgProxy.VideoChip0_setPixel.realDefault = true
 rgProxy.VideoChip0 = MockProxy:new("VideoChip0",{
-  Width = 800,
-  Height = 500,
-  SetPixel = rgProxy.VideoChip0_setPixel.proxy
+  Width = bmp.width,
+  Height = bmp.height,
+  SetPixel = VideoChip0_setPixel
 })
 asType( rgProxy.VideoChip0, "userdata")
 rgProxy.gdt.VideoChip0 = rgProxy.VideoChip0.proxy
@@ -230,11 +239,9 @@ rgProxy.color = MockProxy:new("color",{
 })
 color = rgProxy.color.proxy
 
-rgProxy.ColorRGBA = MockProxy:new("ColorRGBA",function(r,g,b,a)
+ColorRGBA = function(r,g,b,a)
   return asType({R=r,G=g,B=b,A=a},"vector")
-end)
-rgProxy.ColorRGBA.realDefault = true
-ColorRGBA = rgProxy.ColorRGBA.proxy
+end
 
 local function mockTbl(name, tbl)
   rgProxy[name] = MockProxy:new(name, tbl)
@@ -273,3 +280,10 @@ mockTbl("Stick1", {
   X = 0,
   Y = 0
 })
+
+vec2 = function(x,y)
+  return asType({X=x,Y=y},"vector")
+end
+vec3 = function(x,y,z)
+  return asType({X=x,Y=y,Z=z,"vector"})
+end

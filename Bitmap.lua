@@ -19,6 +19,7 @@ function Bitmap:new( width, height )
 end
 
 function Bitmap:setPixel(x,y,color)
+  self.pixels[y] = self.pixels[y] or {}
   self.pixels[y][x] = color
 end
 
@@ -44,7 +45,8 @@ local function toBytes( value, bytes )
 
   local out = ""
   for i = 1, bytes do
-    v = 0xFF & ( value >> (i-1)*8)
+    v = bit32.band( 0xFF, bit32.rshift(value, (i-1)*8))
+    -- v = 0xFF & ( value >> (i-1)*8)
     out = out..string.char(v)
   end
   if #out > bytes then error("Value out of bounds") end
