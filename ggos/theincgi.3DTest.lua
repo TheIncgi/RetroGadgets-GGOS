@@ -32,8 +32,10 @@ local function loadObjects()
   local cube = Object:new"cube"
   
   objs[1] = cube
-  objs[1].yaw = 45
-  objs[1].pitch = 45
+  -- objs[1].yaw = 45
+  -- objs[1].pitch = 45
+  objs[1].yaw = 10.54
+  objs[1].pitch = 28.46
 end
 
 local function setupEnv( view )
@@ -51,7 +53,8 @@ local function setupEnv( view )
 		linalg.identity(linalg.newMatrix(4,4))
 	
 	-- env.mode = "bary"
-	env.mode = "tex"
+	-- env.mode = "tex"
+	env.mode = "face"
 	
 
 end
@@ -131,8 +134,10 @@ function GTest:onUpdate()
   end
   if inputs.button.select.ButtonDown then
     env.mode = ({
-      bary="tex",
-      tex ="bary"
+      face ="bary",
+      bary="uv",
+      uv  ="tex",
+      tex ="face"
     })[env.mode]
 	  redraw = true
   end
@@ -146,6 +151,7 @@ inputs.axis.leftAnalog.Y ~= 0 then
     cam.y += dy
     cam.z += dz
     print( ("Cam: <%.3f,%.3f,%.3f>"):format(cam.x, cam.y, cam.z))
+    print( ("Cube: <Yaw: %.3f, Pitch: %.3f>"):format(cube.yaw, cube.pitch))
     renderObjects( self.view )
   end
 

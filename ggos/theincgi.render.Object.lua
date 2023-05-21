@@ -195,8 +195,28 @@ function Object:fragShader( env )
   local clr
   if env.mode=="tex" then
     clr = self:_sampleNearest( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
-    -- clr = self:_sampleLinear( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
+  elseif env.mode=="face" then
+    local clrs = {
+      { 1.0,  0.0,  0.0,  1 },     -- 1 red
+      { 1.0,  0.5,  0.0,  1 },     -- 2
+      { 1.0,  1.0,  0.0,  1 },     -- 3
+      { 0.5,  1.0,  0.0,  1 },     -- 4
+      { 0.0,  1.0,  0.0,  1 },     -- 5 blue
+      { 0.0,  1.0,  0.5,  1 },   -- 6
+      { 0.0,  1.0,  1.0,  1 },   -- 7 cyan
+      { 0.0,  0.5,  1.0,  1 },   -- 8
+      { 0.0,  0.0,  1.0,  1 },   -- 9
+      { 0.5,  0.0,  1.0,  1 }, -- 10
+      { 1.0,  0.0,  1.0,  1 }, -- 11
+      { 1.0,  0.0,  0.5,  1 }, -- 12
+    }
+    clr = vec( table.unpack( 
+      clrs[(env.faceID-1) % #clrs +1]
+    ))
+  elseif env.mode=="uv" then
+    clr = vec( uv, 0, 1 )
   else
+    -- clr = self:_sampleLinear( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
   -- local clr = linalg.vec( env.uvPos, 1 )
     clr = barPos
   end
@@ -247,13 +267,13 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
       tf[i], unprojected[i] = self:vertShader( env )
       clip[i] = tf[i]
       local w = 1 / sw(tf[i], "w")
+      tf[i] = sw( sc(tf[i],w),"xyz" )
       if w <= 0 then break end
         if not (abs(tf[i].val[1]) > 1
         and abs(tf[i].val[2]) > 1
         and abs(tf[i].val[3]) > 1) then 
           pointIn = true
 		  end
-      tf[i] = sw( sc(tf[i],w),"xyz" )
       -- -1 <-> 1 to 0 <-> wid/hei
       tf[i].val[1] = math.floor( 0.5 + mathUtils.map(tf[i].val[1], -1,1, 0, screen:getWidth()))
       tf[i].val[2] = math.floor( 0.5 + mathUtils.map(tf[i].val[2], -1,1, 0, screen:getHeight()))
@@ -309,20 +329,7 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         local currentDepth = screen:getExtra(px, py, "depth")
         if currentDepth==nil or pd < currentDepth then
           local P = math.floor(pd*30)
-          local clr = {
-            {255,  0,0,255},     -- 1 red
-            {255,128,0,255},     -- 2
-            {255,255,0,255},     -- 3
-            {128,255,0,255},     -- 4
-            {  0,255,0,255},     -- 5 blue
-            {  0,255,128,255},   -- 6
-            {  0,255,255,255},   -- 7 cyan
-            {  0,128,255,255},   -- 8
-            {  0,  0,255,255},   -- 9
-            {  128,  0,255,255}, -- 10
-            {  255,  0,255,255}, -- 11
-            {  255,  0,128,255}, -- 12
-          }
+          
           screen:setPixel(
             px, py,
             --ColorRGBA( P,P,P,255 ) --depth view
