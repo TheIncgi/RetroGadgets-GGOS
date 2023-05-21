@@ -4,5 +4,8 @@ require"ggos.CPU0"
 -- while true do
   update()
 
-  bmp:save("render.bmp")
+  canvas:update() --:save("render.bmp")
 -- end
+print("done")
+
+canvas:close()

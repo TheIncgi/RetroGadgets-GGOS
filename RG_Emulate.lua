@@ -183,8 +183,8 @@ end)
 ----------------------------------------------------
 -- global proxies                                 --
 ----------------------------------------------------
-local Bmp = require"Bitmap"
-bmp = Bmp:new( 800, 500 )
+local Canvas = require"Canvas"
+canvas = Canvas:new( 320*4, 160*4 )
 
 function asType(mock, typeName)
   if mock.proxy then
@@ -216,14 +216,14 @@ rgProxy.gdt = MockProxy:new("gdt",{
     CPU0 = rgProxy.CPU0.proxy
 })
 
-local VideoChip0_setPixel = function(x, y, color)
-  bmp:setPixel( x, y, color )
+local VideoChip0_setPixel = function(chip, coord, color)
+  canvas:setPixel( coord.X, coord.Y, color )
 end
 -- MockProxy:new("VideoChip0.SetPixel",function() end)
 -- rgProxy.VideoChip0_setPixel.realDefault = true
 rgProxy.VideoChip0 = MockProxy:new("VideoChip0",{
-  Width = bmp.width,
-  Height = bmp.height,
+  Width = canvas.width,
+  Height = canvas.height,
   SetPixel = VideoChip0_setPixel
 })
 asType( rgProxy.VideoChip0, "userdata")

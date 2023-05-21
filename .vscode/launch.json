@@ -9,7 +9,7 @@
             "type": "lua-local",
             "request": "launch",
             "program": {
-                "lua": "lua52",
+                "lua": "C:/Users/TheIncgi/Programs/lua/5.2.4/lua52.exe",
                 // "file": "./RunAllTests.lua"
                 "file": "./Run3DTest.lua"
             }

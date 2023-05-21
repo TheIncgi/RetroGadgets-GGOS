@@ -7,9 +7,34 @@ function dataUtils.getBit(x:number, pos:number)
 	return bit32.band(1,bit32.rshift(x, pos))
 end
 
-function dataUtils.enc64( data )
-	error"not implemented"
-end
+function dataUtils.enc64(data)
+	local out = {}
+	local b64 = base64:sub(1, 64) -- Use the first 64 characters of the base64 string
+	
+	for i = 1, #data, 3 do
+	  if i % 32 == 0 then utils.autoYield() end
+	  local bytes = {data:byte(i, i + 2)} -- Get the next three bytes
+	  
+	  -- Calculate the Base64 characters for each set of three bytes
+	  local encoded = {}
+	  encoded[1] = b64:sub(math.floor(bytes[1] / 4) + 1, math.floor(bytes[1] / 4) + 1)
+	  encoded[2] = b64:sub(math.floor(((bytes[1] % 4) * 16) + (bytes[2] / 16)) + 1, math.floor(((bytes[1] % 4) * 16) + (bytes[2] / 16)) + 1)
+	  encoded[3] = b64:sub(math.floor(((bytes[2] % 16) * 4) + (bytes[3] / 64)) + 1, math.floor(((bytes[2] % 16) * 4) + (bytes[3] / 64)) + 1)
+	  encoded[4] = b64:sub(math.floor(bytes[3] % 64) + 1, math.floor(bytes[3] % 64) + 1)
+	  
+	  -- Handle padding for the last group of bytes
+	  if #bytes < 3 then
+		encoded[4] = "="
+		if #bytes < 2 then
+		  encoded[3] = "="
+		end
+	  end
+	  
+	  table.insert(out, table.concat(encoded))
+	end
+	
+	return table.concat(out)
+  end
 
 --base64 to bytes as string
 function dataUtils.dec64( data )

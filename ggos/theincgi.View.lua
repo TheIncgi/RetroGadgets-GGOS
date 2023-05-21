@@ -199,7 +199,8 @@ function View:draw( doColorCorrect )
     return
   end
 	for y=1, self:getHeight() do
-	local adjust = ColorRGBA(0,0,0,125)
+		print(y .. " of " .. self:getHeight())
+		local adjust = ColorRGBA(0,0,0,125)
 		for x=1, self:getWidth() do
 			local c = self:getFinalPixel(x,y)
 			
