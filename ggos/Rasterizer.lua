@@ -109,7 +109,7 @@ function Rast:_scanLine( y, pLeft, pRight, onPixel )
 			-- x, y, --screen space
 			-- mathUtils.map( x, x1, x2, z1, z2 ), --screen space depth
       self:roundPoint( self:_interpolateBundle( 
-        rightX==leftX and 0 or (x-pLeft.pos.val[1]) / (rightX-leftX),
+        rightX==leftX and 0 or (x-leftX) / (rightX-leftX),
         pLeft,
         pRight,
         x, y, mathUtils.map( x, pLeft.pos.val[1], pRight.pos.val[1], pLeft.pos.val[3], pRight.pos.val[3] )

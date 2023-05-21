@@ -184,7 +184,8 @@ end)
 -- global proxies                                 --
 ----------------------------------------------------
 local Canvas = require"Canvas"
-canvas = Canvas:new( 320*4, 160*4 )
+local scale = 1
+canvas = Canvas:new( math.floor(320*scale), math.floor(160*scale) )
 
 function asType(mock, typeName)
   if mock.proxy then

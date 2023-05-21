@@ -34,13 +34,17 @@ function Tex:new(...)
 		{height="number",nil,"h","hei"},
 		{channels="number",3,"ch"},
 		{isColor="boolean",true},
-		{chunks="table",nil,{"data","string"}}
+		{chunks="table",nil,{"data","string"}},
+		{wrapX="boolean",true},
+		{wrapY="boolean",true}
 	},...)
 	
 	obj.width = args.width
 	obj.height = args.height
 	obj.channels = args.channels
 	obj.isColor = args.isColor
+	obj.wrapX = args.wrapX
+	obj.wrapY = args.wrapY
 	
 	if args.data then
 		obj.data = args.data
@@ -86,6 +90,16 @@ end
 
 function Tex:getPixel( x, y )
 	local ch = self.channels
+	if self.wrapX then
+		x = (x-1) % self.width + 1
+	else
+		x = math.max(0, math.min(1, x))
+	end
+	if self.wrapY then
+		y = (y-1) % self.height + 1
+	else
+		y = math.max(0, math.min(1, y))
+	end
 	local start = ((y-1)*self.width + (x-1))*ch + 1
 	
 	local out = {}
@@ -100,20 +114,32 @@ function Tex:getPixel( x, y )
 	end
 	--local utils = require"utils.lua"
   --print( utils.serializeOrdered(out))
+	if self.isColor and self.channels == 4 then
+		local a,r,g,b = table.unpack(out)
+		return r,g,b,a
+	end
 	return table.unpack(out)
 end
 
-function Tex:sampleNearest( x, y )
+function Tex:uvToPixel(u, v)
+	return 
+		u * (self.width  - 1) + 1,
+		v * (self.height - 1) + 1
+end
+
+function Tex:sampleNearest( u, v )
+	local x, y = self:uvToPixel( u, v )
   x = math.floor( x + 0.5 )
   y = math.floor( y + 0.5 )
-  x = math.max( 1, math.min( self.width, x ) )
-  y = math.max( 1, math.min( self.height, y ) )
-  local A,R,G,B = self:getPixel( x, y )
-  return R/255, G/255, B/255, A/255
+  local color = {self:getPixel( x, y )}
+	for i=1,self.channels do
+		color[i] = color[i]/255
+	end
+  return table.unpack( color )
 end
 
 function Tex:_blend( f, a, b )
-  print(f,a,b)
+  --print(f,a,b)
   if not a or not b then
     --return a or b
     error("expected value",2)
@@ -127,11 +153,12 @@ function Tex:_blend( f, a, b )
   end
 end
 
-function Tex:sampleLinear( x, y )
-  local x1 = math.floor( x + 0.5 )
-  local y1 = math.floor( y + 0.5 )
-  local x2 = math.ceil( x + 0.5 )
-  local y2 = math.ceil( y + 0.5 )
+function Tex:sampleLinear( u, v )
+	local x, y = self:uvToPixel( u, v )
+  local x1 = math.floor( x )
+  local y1 = math.floor( y )
+  local x2 = math.ceil( x )
+  local y2 = math.ceil( y )
   local xf = x-x1
   local yf = y-y1
   local c11 = { self:getPixel( x1, y1 ) }
@@ -142,12 +169,12 @@ function Tex:sampleLinear( x, y )
   for _,c in ipairs{ c11, c12, c21, c22 } do
     for i=1,#c do
       c[i] = c[i] / 255
-      print(("%d$%.2f"):format(i,c[i]))
+      --print(("%d$%.2f"):format(i,c[i]))
     end
   end
   local out = {}
-  for i=1,4 do
-    print( "TEX", c12[i] )
+  for i=1,self.channels do
+    --print( "TEX", c12[i] )
     out[i] = self:_blend( 
       yf,
       self:_blend( xf, c11[i], c21[i] ),

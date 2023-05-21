@@ -102,13 +102,13 @@ function Object:vertShader( env )
      )
    end
   local p = m(self._viewTransform, vec(pos,1))
-  return m(proj, p)
+  return m(proj, p), p
 end
 
 --screen to local
-function Object:_unproject( env, vec )
-  return linalg.vecSwizzle(linalg.matrixMult( env.invProjection, linalg.vec(vec,1) ),"xyz")
-end
+-- function Object:_unproject( env, vec )
+--   return linalg.vecSwizzle(linalg.matrixMult( env.invProjection, linalg.vec(vec,1) ),"xyz")
+-- end
 
 --local to world
 function Object:_untransform( env, vec )
@@ -133,10 +133,11 @@ function Object:_sampleNearest( mtl, propName, uv )
   local mapName = propName .. "Map"
   if mtl[ mapName ] then
     self:_loadTexMap( mtl, mapName )
-    local tex = mtl[ mapName ].tex
-    local clr = vec(tex:sampleNearest( uv.val[2] * (tex.width-1)+1, uv.val[1] * (tex.height-1)+1 ))
+    return vec(mtl[ mapName ].tex:sampleNearest(
+      uv.val[1], uv.val[2] 
+    ))
     --print( linalg.toString(clr))
-    return clr
+    -- return clr
   else
     return vec(mtl[ propName ])
   end
@@ -147,11 +148,11 @@ function Object:_sampleLinear( mtl, propName, uv )
   local mapName = propName .. "Map"
   if mtl[ mapName ] then
     self:_loadTexMap( mtl, mapName )
-    local clr = mtl[ mapName ].tex:sampleLinear(
-      uv.val[2], uv.val[1]
-    )
+    return vec(mtl[ mapName ].tex:sampleLinear(
+      uv.val[1], uv.val[2]
+    ))
     --print( linalg.toString( clr ))
-    return clr
+    -- return vec(r,g,b,a)
   else
     return vec(mtl[ propName ])
   end
@@ -193,7 +194,8 @@ function Object:fragShader( env )
   factor = math.min(1,factor + .1)
   local clr
   if env.mode=="tex" then
-    clr = self:_sampleLinear( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
+    clr = self:_sampleNearest( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
+    -- clr = self:_sampleLinear( mtl, "diffuseColor", uv ) --mtl.diffuseColor and vec(mtl.diffuseColor) or barPos
   else
   -- local clr = linalg.vec( env.uvPos, 1 )
     clr = barPos
@@ -208,11 +210,11 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
 	if not env then error("env [arg 1]",2) end
 	if not raster then error("raster [arg 2]", 2) end
 	if not screen then error("screen [arg 3]", 2) end
-  for i, face in ipairs( faceGroup ) do
+  for faceID, face in ipairs( faceGroup ) do
     local smooth = face.smooth
     local verts = part.verts
-    local norms = part.norms
-    local uvs = part.uvs
+    local norms = part.norms or {}
+    local uvs = part.uvs or {}
     local p1,p2,p3 = table.unpack( face )
     local v1,v2,v3 = verts[p1.v], verts[p2.v], verts[p3.v]
     local n1,n2,n3 = norms[p1.n], norms[p2.n], norms[p3.n]
@@ -223,24 +225,26 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
     local sc = linalg.scaleVec
     local abs = math.abs
     v1,v2,v3 = vec(v1), vec(v2), vec(v3)
-    n1,n2,n3 = vec(n1), vec(n2), vec(n3)
     t1,t2,t3 = vec(t1), vec(t2), vec(t3)
-
+    
     if not n1 then
       local n = linalg.cross(
         linalg.subVec(v2, v1),
         linalg.subVec(v3, v2)
       ) 
       n1,n2,n3 = n,n,n
+    else
+      n1,n2,n3 = vec(n1), vec(n2), vec(n3)
     end
 
     --vertex
     local tf = {}
+    local unprojected = {}
     local clip = {}
     local pointIn = false
     for i,v in ipairs{v1,v2,v3} do
       env.pos = v
-      tf[i] = self:vertShader( env )
+      tf[i], unprojected[i] = self:vertShader( env )
       clip[i] = tf[i]
       local w = 1 / sw(tf[i], "w")
       if w <= 0 then break end
@@ -263,6 +267,7 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         vertex = v1, --global
         norm   = n1,
         uv     = t1,
+        unprojected = unprojected[1],
         bar    = vec(1,0,0),
         clip   = clip[1]
       },{
@@ -270,6 +275,7 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         vertex = v2,
         norm   = n2,
         uv     = t2,
+        unprojected = unprojected[2],
         bar    = vec(0,1,0),
         clip   = clip[2]
       },{
@@ -277,38 +283,54 @@ function Object:_renderGroup( env, raster, screen, faceGroup, part )
         vertex = v3,
         norm   = n3,
         uv     = t3,
+        unprojected = unprojected[3],
         bar    = vec(0,0,1),
         clip   = clip[3]
       },
       function(point)
-        local px, py
         env.screenSpaceVert = point.pos
-        -- print("PX: "..point.pos.val[1]..", PY: "..point.pos.val[2])
-        env.localSpaceVert  = self:_unproject( env, point.pos )
+        env.localSpaceVert  = point.unprojected
         env.vertPos = point.vertex
         env.uvPos   = point.uv
         env.normal  = point.norm
         env.clipPos = point.clip
         env.barPos  = point.bar
+        env.faceID  = faceID
 
         local c = self:fragShader( env )
-        --c = linalg.vec( c, 1 )
         for i=1,#c.val do
           c.val[i] = math.max(0,math.min(255,math.floor(c.val[i]*255)))
         end
         
         --print( "OBJ",px,py,c.val[1],c.val[2],c.val[3] )
         c.val[4] = 255  --TRANSPARENCY DISABLED
-        --c.val[4] = c.val[4] or 255
-        --print(c.val[4])
-        local px, py, pd = point.pos.val[1], point.pos.val[2], point.clip[3]
+        
+        local px, py, pd = point.pos.val[1], point.pos.val[2], point.clip.val[3]
         local currentDepth = screen:getExtra(px, py, "depth")
         if currentDepth==nil or pd < currentDepth then
+          local P = math.floor(pd*30)
+          local clr = {
+            {255,  0,0,255},     -- 1 red
+            {255,128,0,255},     -- 2
+            {255,255,0,255},     -- 3
+            {128,255,0,255},     -- 4
+            {  0,255,0,255},     -- 5 blue
+            {  0,255,128,255},   -- 6
+            {  0,255,255,255},   -- 7 cyan
+            {  0,128,255,255},   -- 8
+            {  0,  0,255,255},   -- 9
+            {  128,  0,255,255}, -- 10
+            {  255,  0,255,255}, -- 11
+            {  255,  0,128,255}, -- 12
+          }
           screen:setPixel(
             px, py,
+            --ColorRGBA( P,P,P,255 ) --depth view
+            --ColorRGBA( table.unpack( clr[faceID] or {255,255,255,255} ) ) --face id view
             ColorRGBA( table.unpack(c.val) )
           )
           screen:setExtra(px, py, "depth", pd)
+          screen:setExtra(px, py, "face", i)
         end
       end
     )

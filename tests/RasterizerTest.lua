@@ -84,6 +84,23 @@ local points_left_extra = {
   }
 }
 
+-- multipart left side lower with extra
+local points_left_extra_2 = {
+  {
+    _DEBUG="p1",
+    pos = linalg.vec(  144, 120, 0 ), --highest
+    bar = linalg.vec( 0, 0, 1) --blue vertex
+  },{
+    _DEBUG="p2",
+    pos = linalg.vec( 172,  63, 0 ), --mid
+    bar = linalg.vec( 0, 1, 0) --green vertex
+  },{
+    _DEBUG="p3",
+    pos = linalg.vec(  87, 38, 0 ), --lowest
+    bar = linalg.vec( 1, 0, 0) --red vertex
+  }
+}
+
 ----------------------------------------------
 -- Test utils                               --
 ----------------------------------------------
@@ -377,4 +394,66 @@ do
     return true
   end, "$1" )
 end
+
+----------------------------------------------------------------
+-- Interpolates extras Correctly for left side lower triangle --
+----------------------------------------------------------------
+do
+  --given
+  local rast = Rasterizer:new()
+  local env = Env:new()
+  local onPixel = env:proxy("onPixel",function() end)
+
+  local p1, p2, p3 = table.unpack( points_left_extra_2 )
+  onPixel(any()):always() --don't care
+
+  --test code
+  local test = tester:add("Interpolates extras correctly", env, function()
+    rast:doTriangle(p1, p2, p3, onPixel.proxy)
+  end)
+
+  
+  --helper
+  local function dist(bar, r,g,b)
+    local br, bg, bb = table.unpack(bar.val)
+    local dr, dg, db = r-br, g-bg, b-bb
+    return math.sqrt( dr*dr + dg*dg + db*db )
+  end
+  --checks
+  test:var_isTrue(function()
+    local TEST_X, TEST_Y = 105, 63
+    for i, callArgs in ipairs(onPixel.records.call) do
+      if not callArgs[1].bar then
+        --string is not true, counts as failure
+        return "onPixel call #"..i.." of "..#onPixel.records.call.." "..utils.serializeOrdered(callArgs[1]).." does not contain the bar attribute"
+      end
+
+      local point = callArgs[1]
+      local px, py = point.pos.val[1], point.pos.val[2]
+
+      if point.bar.val[1] < 0
+      or point.bar.val[2] < 0
+      or point.bar.val[3] < 0 then
+        return ("onPixel call at {%d, %d} has a bar value of {%.3f, %.3f, %.3f}, No values should be < 0"):format(
+          TEST_X, TEST_Y, 
+          point.bar.val[1],point.bar.val[2],point.bar.val[3]
+        )
+      end
+
+      if px == TEST_X and py == TEST_Y then
+        local d = dist( point.bar, 0,1,0 )
+        if d > .7 then
+          return ("onPixel call at {%d, %d} has a bar value of {%.3f, %.3f, %.3f}, expected proximity to {0,1,0} to be low, actual distance %.3f"):format(
+            TEST_X, TEST_Y, 
+            point.bar.val[1],point.bar.val[2],point.bar.val[3],
+            d
+          )
+        end
+        return true
+      end
+    end
+    return ("onPixel not called for pixel {%d, %d}"):format(TEST_X, TEST_Y)
+  end, "$1")
+end
+
 return tester

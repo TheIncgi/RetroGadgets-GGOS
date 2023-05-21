@@ -50,7 +50,8 @@ local function setupEnv( view )
   env.transform =
 		linalg.identity(linalg.newMatrix(4,4))
 	
-	env.mode = "bary"
+	-- env.mode = "bary"
+	env.mode = "tex"
 	
 
 end
