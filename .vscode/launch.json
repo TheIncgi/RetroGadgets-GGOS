@@ -13,6 +13,7 @@
                 "lua": "lua52.exe",
                 // "file": "./RunAllTests.lua"
                 "file": "./Run3DTest.lua"
+                // "file": "./profile-3DTest.lua"
             }
         },
         {

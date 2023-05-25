@@ -50,6 +50,10 @@ function Canvas:update()
   -- print(dec==data)
   if not self.window then
     self.window = io.popen(LAUNCH_CMD:format(self.width, self.height), "w")
+    if not self.window then
+      print"Coudn't run jar, check JAVA config"
+      return
+    end
   end
   self.window:write(enc)
   local f = io.open("data.dat","wb")

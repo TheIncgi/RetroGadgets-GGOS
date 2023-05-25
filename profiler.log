@@ -1,0 +1,166 @@
+> Total time: 386.325000 s
+--------------------------------------------------------------------------------------
+| FILE                : FUNCTION                    : LINE   : TIME   : %     : #    |
+--------------------------------------------------------------------------------------
+| .\Run3DTest         : Anon                        :     0  : 386.3220: 100.0 :       1 |
+| .\ggos\CPU0         : Anon                        :     0  : 207.1150: 53.6  :       1 |
+| .\ggos\CPU0         : Anon                        :    86  : 203.0390: 52.6  :       1 |
+| [string "./ggos/thei: Anon                        :     0  : 185.4350: 48.0  :      13 |
+| [string "./ggos/Cred: Anon                        :     0  : 181.0260: 46.9  :       2 |
+| [string "./ggos/thei: onUpdate                    :    41  : 165.7790: 42.9  :       1 |
+| [string "./ggos/thei: draw                        :   195  : 165.7790: 42.9  :       1 |
+| [string "./ggos/GGOS: update                      :   102  : 165.7790: 42.9  :       1 |
+| .\ggos\CPU0         : update                      :   109  : 165.7790: 42.9  :       1 |
+| .\ggos\CPU0         : Anon                        :    92  : 165.7790: 42.9  :         1 |
+| [string "./ggos/thei: onUpdate                    :   105  : 165.7790: 42.9  :         1 |
+| .\RG_Emulate        : type                        :   201  : 124.4790: 32.2  : 5,384,147 |
+| [string "./ggos/GGOS: run                         :    67  : 109.2080: 28.3  :       1 |
+| [string "./ggos/thei: renderObjects               :    62  : 109.1360: 28.2  :       1 |
+| [string "./ggos/thei: onFocus                     :    94  : 109.1360: 28.2  :       1 |
+| [string "./ggos/thei: render                      :   347  : 109.1320: 28.2  :       1 |
+| [string "./ggos/thei: _renderGroup                :   229  : 109.1300: 28.2  :       1 |
+| [string "./ggos/Rast: doTriangle                  :    51  : 109.0950: 28.2  :      12 |
+| [string "./ggos/Rast: _scanLine                   :    98  : 106.1370: 27.5  :     874 |
+| [string "./ggos/GGOS: setup                       :    21  : 93.8310: 24.3   :       1 |
+| [string "./ggos/GGOS: _loadGames                  :    38  : 93.8250: 24.3   :       1 |
+| [string "./ggos/util: assertType                  :     6  : 92.3470: 23.9   : 1,686,067 |
+| [string "./ggos/thei: new                         :    12  : 90.5130: 23.4   :       1 |
+| [string "./ggos/Rast: doBottomTriangle            :   173  : 63.4700: 16.4   :      12 |
+| [string "./ggos/Rast: _interpolateBundle          :    84  : 55.6600: 14.4   :   33,802 |
+| [string "./ggos/thei: getFinalPixel               :   325  : 53.5460: 13.9   :  307,200 |
+| .\RG_Emulate        : Anon                        :   163  : 52.5420: 13.6   :      29 |
+| .\RG_Emulate        : luauLoader                  :    85  : 52.3770: 13.6   :      29 |
+| .\RG_Emulate        : luauToLua                   :    45  : 52.3710: 13.6   :      29 |
+| [string "./ggos/thei: onPixel                     :   310  : 51.6980: 13.4   :   32,054 |
+| [string "./ggos/Rast: doTopTriangle               :   120  : 45.6070: 11.8   :      12 |
+| [string "./ggos/thei: _load                       :    43  : 45.3690: 11.7   :       1 |
+| [string "./ggos/data: dec64                       :    40  : 45.3510: 11.7   :    1,024 |
+| [string "./ggos/lina: interpolate                 :   467  : 32.7830: 8.5    :  202,884 |
+| [string "./ggos/lina: vec                         :    51  : 20.2390: 5.2    :  194,277 |
+| [string "./ggos/lina: isVec                       :   456  : 14.8590: 3.8    :  405,804 |
+| .\Canvas            : update                      :    36  : 13.4210: 3.5    :       1 |
+| [string "./ggos/data: getBit                      :     6  : 13.2850: 3.4    :  736,736 |
+| [string "./ggos/thei: setPixel                    :   221  : 12.3480: 3.2    :   24,402 |
+| [string "./ggos/thei: getPixel                    :   307  : 9.7620 : 2.5    :  307,200 |
+| [string "./ggos/lina: multM                       :   148  : 7.7940 : 2.0    :   64,108 |
+| [string "./ggos/data: enc64                       :    10  : 6.5610 : 1.7    :       1 |
+| [string "./ggos/lina: _emptyVector                :    28  : 3.1710 : 0.8    :  685,795 |
+| [string "./ggos/lina: normalize                   :   190  : 2.9980 : 0.8    :   96,164 |
+| [string "./ggos/lina: newVector                   :    43  : 2.9090 : 0.8    :  202,884 |
+| [string "./ggos/lina: s                           :   382  : 2.4830 : 0.6    :   64,108 |
+| [string "./ggos/lina: dot                         :   199  : 2.4050 : 0.6    :   32,054 |
+| [string "./ggos/thei: Anon                        :   321  : 2.1500 : 0.6    :  512,000 |
+| [string "./ggos/lina: magnitude                   :   182  : 1.2760 : 0.3    :   96,164 |
+| [string "./ggos/thei: getWidth                    :   135  : 1.2360 : 0.3    :  280,603 |
+| [string "./ggos/grap: Anon                        :     0  : 1.1970 : 0.3    :       1 |
+| [string "./ggos/thei: getHeight                   :   139  : 1.1830 : 0.3    :  280,604 |
+| [string "./ggos/thei: getX                        :   147  : 1.1410 : 0.3    :  256,000 |
+| [string "./ggos/thei: getZ                        :   185  : 1.1300 : 0.3    :  256,000 |
+| [string "./ggos/thei: getY                        :   151  : 1.0980 : 0.3    :  256,000 |
+| .\RG_Emulate        : findEndOfString             :     8  : 1.0580 : 0.3    :    1668 |
+| [string "./ggos/lina: vecToCol                    :   366  : 1.0230 : 0.3    :   64180 |
+| [string "./ggos/lina: colToVec                    :   422  : 1.0000 : 0.3    :   64180 |
+| .\RG_Emulate        : SetPixel                    :   220  : 0.7100 : 0.2    :   51200 |
+| [string "./ggos/Rast: roundPoint                  :    45  : 0.6660 : 0.2    :   32054 |
+| [string "./ggos/util: autoYield                   :   602  : 0.5940 : 0.2    :   26002 |
+| [string "./ggos/thei: markDirty                   :    75  : 0.5690 : 0.1    :   73214 |
+| [string "./ggos/lina: _emptyMatrix                :    20  : 0.5570 : 0.1    :  128384 |
+| ...\theincgi\Documen: __index                     :    97  : 0.5070 : 0.1    :  103265 |
+| [string "./ggos/lina: subv                        :   128  : 0.4660 : 0.1    :   32054 |
+| [string "./ggos/thei: setExtra                    :    29  : 0.2380 : 0.1    :   48804 |
+| .\Canvas            : getPixel                    :    32  : 0.2260 : 0.1    :   51200 |
+| .\Canvas            : setPixel                    :    27  : 0.2080 : 0.1    :   51200 |
+| [string "./ggos/thei: getExtra                    :    44  : 0.1950 : 0.1    :   32054 |
+| [string "./ggos/math: map                         :     5  : 0.1490 : 0.0    :   35634 |
+| [string "./ggos/GGOS: Anon                        :     0  : 0.1020 : 0.0    :       1 |
+| [string "./ggos/GGOS: _start                      :    85  : 0.0640 : 0.0    :       1 |
+| [string "./ggos/thei: onInit                      :    88  : 0.0630 : 0.0    :       1 |
+| [string "./ggos/thei: loadObjects                 :    30  : 0.0560 : 0.0    :       1 |
+| [string "./ggos/thei: new                         :    23  : 0.0550 : 0.0    :       1 |
+| [string "./ggos/util: kwargs                      :   405  : 0.0450 : 0.0    :      16 |
+| [string "./ggos/thei: subView                     :    55  : 0.0300 : 0.0    :       4 |
+| [string "./ggos/thei: new                         :    11  : 0.0280 : 0.0    :       6 |
+| [string "./ggos/util: inTable                     :   192  : 0.0160 : 0.0    :     159 |
+| [string "./ggos/thei: vertShader                  :    76  : 0.0140 : 0.0    :      36 |
+| [string "./ggos/lina: m                           :   148  : 0.0100 : 0.0    :      73 |
+| .\RG_Emulate        : isFunctionCall              :    40  : 0.0080 : 0.0    :     467 |
+| [string "./ggos/thei: new                         :     8  : 0.0080 : 0.0    :       1 |
+| [string "./ggos/util: cprint                      :   629  : 0.0080 : 0.0    :      11 |
+| [string "./ggos/util: argSplit                    :   363  : 0.0070 : 0.0    :      79 |
+| [string "./ggos/thei: setupEnv                    :    41  : 0.0070 : 0.0    :       1 |
+| [string "./ggos/clas: _new                        :    16  : 0.0060 : 0.0    :      19 |
+| [string "./ggos/thei: new                         :    16  : 0.0060 : 0.0    :       1 |
+| [string "./ggos/util: typeMatches                 :   494  : 0.0060 : 0.0    :      81 |
+| [string "./ggos/thei: new                         :     9  : 0.0050 : 0.0    :       4 |
+| [string "./ggos/util: multiGet                    :   348  : 0.0030 : 0.0    :      79 |
+| [string "./ggos/thei: createMatrix                :    55  : 0.0020 : 0.0    :       1 |
+| [string "./ggos/thei: new                         :    82  : 0.0020 : 0.0    :       2 |
+| [string "./ggos/easi: Anon                        :     0  : 0.0020 : 0.0    :       1 |
+| [string "./ggos/clas: isClass                     :   116  : 0.0020 : 0.0    :      36 |
+| [string "./ggos/lina: sw                          :   382  : 0.0020 : 0.0    :      72 |
+| [string "./ggos/thei: new                         :    13  : 0.0020 : 0.0    :       1 |
+| [string "./ggos/thei: modelMatrix                 :    58  : 0.0010 : 0.0    :       1 |
+| [string "./ggos/lina: isMat                       :   461  : 0.0010 : 0.0    :     108 |
+| [string "./ggos/thei: new                         :    21  : 0.0010 : 0.0    :       1 |
+| [string "./ggos/thei: setParent                   :   124  : 0.0010 : 0.0    :       1 |
+| [string "./ggos/easi: wrap                        :   254  : 0.0010 : 0.0    :      37 |
+| [string "./ggos/util: keys                        :    27  : 0.0010 : 0.0    :      79 |
+--------------------------------------------------------------------------------------
+| [string "./ggos/retr: state                       :    13  : ~      : ~     :    4 |
+| [string "./ggos/retr: isHome                      :    80  : ~      : ~     :    1 |
+| [string "./ggos/thei: onFocus                     :    31  : ~      : ~     :    1 |
+| [string "./ggos/retr: inputs                      :    93  : ~      : ~     :    1 |
+| [string "./ggos/thei: isDirty                     :    85  : ~      : ~     :    1 |
+| .\Canvas            : close                       :    60  : ~      : ~     :    1 |
+| .\RG_Emulate        : vec2                        :   285  : ~      : ~     : 51200|
+| [string "./ggos/thei: fragShader                  :   161  : ~      : ~     : 32054|
+| [string "./ggos/grap: blendAlpha                  :   243  : ~      : ~     : 327914|
+| [string "./ggos/retr: axis                        :    84  : ~      : ~     :    1 |
+| .\RG_Emulate        : ColorRGBA                   :   243  : ~      : ~     : 418919|
+| [string "./ggos/retr: button                      :    65  : ~      : ~     :    1 |
+| [string "./ggos/retr: dpad                        :    50  : ~      : ~     :    1 |
+| [string "./ggos/thei: inLocalBounds               :   106  : ~      : ~     : 280402|
+| [string "./ggos/lina: sc                          :   338  : ~      : ~     :   36 |
+| [string "./ggos/clas: isA                         :    96  : ~      : ~     :   12 |
+| [string "./ggos/thei: load                        :    27  : ~      : ~     :    1 |
+| [string "./ggos/clas: className                   :    90  : ~      : ~     :    3 |
+| [string "./ggos/data: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/cons: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/clas: new                         :    16  : ~      : ~     :    1 |
+| [string "./ggos/GGOS: getActivity                 :    96  : ~      : ~     :    3 |
+| [string "./ggos/cube: Anon                        :     0  : ~      : ~     :    2 |
+| [string "./ggos/Rast: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/thei: onInit                      :    27  : ~      : ~     :    1 |
+| [string "./ggos/clas: super                       :    92  : ~      : ~     :    4 |
+| [string "./ggos/Rast: new                         :    21  : ~      : ~     :    1 |
+| [string "./ggos/GAME: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/clas: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/util: Anon                        :     0  : ~      : ~     :    1 |
+| .\RG_Emulate        : setFgColor                  :   234  : ~      : ~     :   22 |
+| [string "./ggos/lina: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/clas: class                       :     8  : ~      : ~     :   15 |
+| [string "./ggos/retr: cpuTime                     :     3  : ~      : ~     :    8 |
+| [string "./ggos/math: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/retr: Anon                        :     0  : ~      : ~     :    1 |
+| [string "./ggos/Rast: _sortPoints                 :    32  : ~      : ~     :   12 |
+| [string "./ggos/thei: new                         :     6  : ~      : ~     :    1 |
+| [string "./ggos/thei: setFov                      :    41  : ~      : ~     :    1 |
+| [string "./ggos/lina: scaleVec                    :   338  : ~      : ~     :    2 |
+| [string "./ggos/lina: translate                   :   297  : ~      : ~     :    2 |
+| [string "./ggos/thei: getPosVec                   :    51  : ~      : ~     :    1 |
+| [string "./ggos/lina: copyMatrix                  :   403  : ~      : ~     :    2 |
+| [string "./ggos/lina: matrixMult                  :   148  : ~      : ~     :    1 |
+| [string "./ggos/lina: inverseMat                  :   489  : ~      : ~     :    2 |
+| [string "./ggos/thei: getPosVec                   :    54  : ~      : ~     :    1 |
+| [string "./ggos/retr: screenSize                  :   108  : ~      : ~     :    1 |
+| [string "./ggos/lina: newRotateMatrix             :   277  : ~      : ~     :    6 |
+| [string "./ggos/lina: mat                         :    77  : ~      : ~     :    1 |
+| .\libs\profiler     : stop                        :   225  : ~      : ~     :    1 |
+| [string "./ggos/lina: rotMat                      :   321  : ~      : ~     :    6 |
+| [string "./ggos/lina: newMatrix                   :    31  : ~      : ~     :   11 |
+| [string "./ggos/thei: clear                       :   369  : ~      : ~     :    3 |
+| [string "./ggos/thei: cot                         :    37  : ~      : ~     :    2 |
+| [string "./ggos/lina: identity                    :    98  : ~      : ~     :    5 |
+| [string "./ggos/thei: clear                       :    58  : ~      : ~     :    1 |
+| [string "./ggos/thei: getSize                     :   143  : ~      : ~     :    1 |
+--------------------------------------------------------------------------------------

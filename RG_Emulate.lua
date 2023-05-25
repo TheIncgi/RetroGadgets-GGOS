@@ -180,6 +180,15 @@ table.insert(package.loaders, function(moduleName)
   end
 end)
 
+-- local function tmemoize(func)
+--   return setmetatable({}, {
+--       __index = function(self, k)
+--           local v = func(k);
+--           self[k] = v
+--           return v;
+--       end
+--   });
+-- end
 ----------------------------------------------------
 -- global proxies                                 --
 ----------------------------------------------------
