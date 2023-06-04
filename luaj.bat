@@ -1,0 +1,1 @@
+"C:\Users/theincgi/Programs/java/jdk-17.0.2/bin/java.exe" -jar ./LuaJProfiler-1.0.0-SNAPSHOT-jar-with-dependencies.jar %*

@@ -1,6 +1,9 @@
 require"RG_Emulate"
+
 local Profiler = require"Profiler"
 local profiler = Profiler:new()
+PROFILER = profiler
+_G.PROFILER = PROFILER
 
 -- function test3()
 --     profiler:onHook("return")
@@ -16,7 +19,6 @@ local profiler = Profiler:new()
 
 -- test()
 
-profiler:start()
 require"Run3DTest"
 profiler:stop()
 profiler:save("profiler.json")

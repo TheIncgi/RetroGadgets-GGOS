@@ -2,6 +2,9 @@ local utils = {}
 local cls = require"class.lua"
 local isClass = cls.isClass
 
+local type = type
+local error = error
+
 --type, value, funcName, arg
 function utils.assertType( t, v, f, a, level )
   f = f or "?"
@@ -9,18 +12,15 @@ function utils.assertType( t, v, f, a, level )
   level = (level or 1) -1
   if type(t)=="table" then
     local exp = "{"
-    for i,ty in pairs(t) do
+    for i=1,#t do
+      local ty = t[i]
       if type(v)==ty then return end
       exp = exp.. (#exp>0 and "," or "") .. ty
     end
     exp = exp.."}"
-    error(("'%s' arg %s expected %s, got '%s'"):format(
-      f, a, exp, type(v)
-    ),3 + level)
+    error(table.concat{"'",f,"' arg ",a," expected ",exp,", got '",type(v),"'"},3 + level)
   elseif type(v)~=t then
-      error(("'%s' arg %s expected %s, got '%s'"):format(
-        f, a, t, type(v)
-      ),3 + level)
+      error(table.concat{"'",f,"' arg ",a," expected ",t,", got '",type(v),"'"},3 + level)
   end
 end
 

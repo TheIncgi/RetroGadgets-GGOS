@@ -160,12 +160,12 @@ end
 ]===]
 local r = luauToLua( test )
 
-table.insert(package.loaders, function(moduleName)
+table.insert(package.loaders or package.searchers, function(moduleName)
   if moduleName:sub(-4) == ".lua" or moduleName:match".luafont$"
   or moduleName:match".obj$"
   or moduleName:match".mtl$"
   or moduleName:match".tex$" then
-    for i, loader in ipairs(package.loaders) do
+    for i, loader in ipairs(package.loaders or package.searchers) do
       
       local path = "./ggos/"..moduleName
       local f = assert(io.open( path, "r" ))
@@ -195,6 +195,7 @@ end)
 local Canvas = require"Canvas"
 local scale = 1
 canvas = Canvas:new( math.floor(320*scale), math.floor(160*scale) )
+local quickType = setmetatable({},{__mode="kv"})
 
 function asType(mock, typeName)
   if mock.proxy then
@@ -204,14 +205,21 @@ function asType(mock, typeName)
   else
     setmetatable(mock, {__type=typeName})
   end
+  quickType[mock] = typeName
   return mock
 end
+
 local nativeType = type
 type = function(x)
-  if nativeType(x)=="table" and getmetatable(x) and getmetatable(x).__type then
-      return getmetatable(x).__type
+  if x==nil then return "nil"
+  elseif not quickType[x] then
+    if nativeType(x)=="table" and getmetatable(x) and getmetatable(x).__type then
+      quickType[x] = getmetatable(x).__type
+    else
+      quickType[x] = nativeType(x)
+    end
   end
-  return nativeType(x)
+  return quickType[x]
 end
 
 local MockProxy = require"MockProxy"

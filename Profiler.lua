@@ -41,6 +41,7 @@ function Profiler:new()
       subCalls = {}
     },
     totalTime = Timer:new(),
+    hookTime = Timer:new(),
     nativeHook = false,
     window = false,
     _n = 0
@@ -53,7 +54,9 @@ function Profiler:new()
 end
 
 function Profiler:onHook(event)
+  self.hookTime:start()
   local info = debug.getinfo(3,"nS")
+  if not info then self.hookTime:stop() return end
   local file = info.short_src or "[?]"
   local func = info.name or "[?]"
   local line = info.linedefined or 0
@@ -100,6 +103,7 @@ function Profiler:onHook(event)
     if call and call.cpuTime then
       call.cpuTime:start()
     end
+    self.hookTime:stop()
   end
 
   self._n = self._n + 1
@@ -157,6 +161,7 @@ end
 function Profiler:toJson()
   local json = JsonObject:new()
   json:put("time",self.totalTime:getTime())
+  json:put("hookTime",self.hookTime:getTime())
   json:put("calls", self:subCallsToJson( self.stack.subCalls ))
   return json
 end

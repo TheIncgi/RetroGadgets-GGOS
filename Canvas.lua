@@ -1,5 +1,5 @@
--- local JAVA = "C:/Users/TheIncgi/Programs/java/jdk-17.0.2/bin/java.exe"
-local JAVA = "C:/Users/theincgi/Software/java/openjdk-18/bin/java.exe"
+local JAVA = "C:/Users/TheIncgi/Programs/java/jdk-17.0.2/bin/java.exe"
+-- local JAVA = "C:/Users/theincgi/Software/java/openjdk-18/bin/java.exe"
 local LAUNCH_CMD = JAVA ..
 " --module-path javafx-sdk-11.0.2/lib --add-modules=javafx.controls -jar LuaWindow-0.0.1-SNAPSHOT.jar %d %d"
 
@@ -62,7 +62,9 @@ function Canvas:update()
 end
 
 function Canvas:close()
-  self.window:close()
+  if self.window then
+    self.window:close()
+  end
 end
 
 return Canvas

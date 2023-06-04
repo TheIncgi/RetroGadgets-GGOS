@@ -60,6 +60,8 @@ local function setupEnv( view )
 end
 
 local function renderObjects( view )
+  -- print"profiling started"
+  -- _G.PROFILER:start()
   cprint(ansiColor.yellow,"Render Objects...")
   buffer:clear()
   env.projection,	env.view = cam:createMatrix()

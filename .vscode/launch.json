@@ -10,10 +10,11 @@
             "request": "launch",
             "program": {
                 // "lua": "C:/Users/TheIncgi/Programs/lua/5.2.4/lua52.exe",
-                "lua": "lua52.exe",
+                // "lua": "lua52.exe",
+                "lua": "C:/Users/Theincgi/Documents/Github/RetroGadgets-GGOS/luaj.bat",
                 // "file": "./RunAllTests.lua"
-                "file": "./Run3DTest.lua"
-                // "file": "./profile-3DTest.lua"
+                // "file": "./Run3DTest.lua"
+                "file": "./profile-3DTest.lua"
             }
         },
         {
