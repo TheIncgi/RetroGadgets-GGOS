@@ -25,7 +25,7 @@ for i, testName in ipairs( tests ) do
       end
     end
     for test in pairs(results.tests) do
-      if not HIDE_PSSS or not test.passed then
+      if not HIDE_PASS or not test.passed then
         print(("  %-"..wid.."s | %s | %s"):format(test.name, test.passed and "PASS" or "FAIL", test.reason or ""))
       end
     end
